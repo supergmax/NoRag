@@ -1,0 +1,21 @@
+# Environment & secrets
+.env
+*.env
+
+# Base de données locale
+local/oraculus.db
+local/*.db
+
+# Données personnelles (PDFs et index)
+../data/
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
