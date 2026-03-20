@@ -1,6 +1,7 @@
 # Environment & secrets
 .env
 *.env
+presentation/node_modules
 
 # Base de données locale
 local/oraculus.db
