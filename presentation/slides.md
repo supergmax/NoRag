@@ -28,13 +28,13 @@ transition: fade-out
 
 # 🛑 Le Problème du RAG Classique
 
-Pourquoi l'approche traditionnelle vectorielle montre ses limites ?
+Pourquoi l'approche vectorielle traditionnelle montre ses limites ?
 
 <v-click>
 
 - **Boîte Noire Vectorielle** : Découpage du texte en embeddings (vecteurs) incompréhensibles par l'humain.
-- **Perte du Contexte Global** : La recherche de similarité (cosine similarity) trouve des morceaux de phrases isolés, perdant l'intention globale de l'auteur.
-- **Complexité de l'Infrastructure** : Nécessite des bases de données vectorielles spécialisées lourdes (pgvector, Pinecone, FAISS, Milvus).
+- **Perte du Contexte Global** : La recherche de similarité trouve des phrases isolées, perdant l'intention globale de l'auteur.
+- **Complexité de l'Infrastructure** : Nécessite des bases de données vectorielles spécialisées lourdes (pgvector, Pinecone).
 
 </v-click>
 
@@ -53,12 +53,37 @@ image: https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?q=80&w=2070&aut
 
 # 🚀 La Solution NoRag
 
-Un routage **100% LLM** qui exploite les immenses fenêtres de contexte dynamiques d'aujourd'hui (1M+ tokens pour Gemini 1.5, 200K pour Claude 3.5).
+Un routage **100% LLM** qui exploite les **immenses fenêtres de contexte dynamiques** d'aujourd'hui.
 
 - **Transparence Totale** : Index en pur Markdown lisible par un humain.
-- **Zéro Vecteur** : Recherche sémantique réelle par compréhension de lecture, pas par mathématiques.
-- **Infrastructure Minimaliste** : Supporte SQLite (local), Supabase (cloud), ou même sans base de données du tout (fichiers locaux).
-- **Multi-LLM As A Feature** : Compatible (Gemini, ChatGPT, Claude, Grok, Local LLMs).
+- **Zéro Vecteur** : Recherche sémantique réelle par compréhension de lecture.
+- **Infrastructure Minimaliste** : Supporte SQLite, Supabase, ou fichiers locaux.
+- **Multi-LLM As A Feature** : Compatible (Gemini, ChatGPT, Claude, Grok...).
+
+---
+layout: default
+---
+
+# 🧠 L'Ère des Fenêtres de Contexte Géantes
+
+Pourquoi NoRag v2 est possible **aujourd'hui** (Fin 2024 / 2025) :
+
+<v-clicks>
+
+- **Google Gemini (1.5 / 2.5)** : **1 à 2 Millions** de tokens (soit ~1500 à 3000 pages).
+- **xAI Grok (Grok 3 / 4.1)** : Jusqu'à **2 Millions** de tokens.
+- **Anthropic Claude (3.5 / MAX)** : **200K à 1 Million** de tokens.
+- **OpenAI GPT-4o / o1** : **128K** tokens (soit ~300 pages).
+- **Mistral Large 2** : **128K** tokens.
+
+</v-clicks>
+
+<br>
+<v-click>
+
+> **La Révolution** : L'IA peut littéralement mémoriser l'intégralité de vos index documentaires **à chaque question**, rendant obsolète le découpage empirique du RAG vectoriel.
+
+</v-click>
 
 ---
 layout: default
@@ -71,11 +96,11 @@ Au cœur de NoRag se trouvent 3 fichiers Markdown (dans le dossier `data/`) :
 <v-clicks>
 
 1. 🤖 **`index_agents.md`**
-   - Le catalogue des *Agents/Skills* (ex: L'agent Documentaire, L'Archiviste). L'IA sait quelles compétences elle peut appeler.
+   - Le catalogue des *Agents/Skills*. L'IA sait quelles compétences elle peut appeler.
 2. 📚 **`index_documents.md`** 
-   - Le "Cerveau" de routage. Il liste tous les documents avec leur résumé et leurs chapitres (titres + mots-clés).
+   - Le "Cerveau" de routage. Il liste tous les documents avec leur résumé et leurs chapitres.
 3. 📜 **`index_history.md`**
-   - Résumé perpétuel des conversations. Permet à n'importe quel LLM nouveau de reprendre le fil d'une session précédente.
+   - Résumé perpétuel des conversations. Permet à n'importe quel LLM de reprendre le fil.
 
 </v-clicks>
 
@@ -85,35 +110,34 @@ layout: two-cols
 
 # ⚙️ Le Pipeline en 3 Étapes
 
-Le workflow strict que le système impose au LLM pour ne jamais halluciner :
+Le workflow strict imposé au LLM.
 
 <v-clicks>
 
 1. 🗺️ **ROUTAGE (Silencieux)**
-   - L'IA lit l'index documentaire et la question. 
-   - Elle identifie *réellement* quels sont les 1 à 3 documents/pages pertinents (ex: `pages 20-35 du Document A`).
+   - L'IA lit `index_documents.md` et cible 1 à 3 documents pertinents.
 
-2. 🗃️ **COMPRÉHENSION CONTEXTUELLE**
-   - L'historique compacté (`index_history.md`) est lu pour s'adapter à la demande, en identifiant s'il s'agit d'un suivi de question.
+2. 🗃️ **COMPRÉHENSION**
+   - L'historique (`index_history.md`) est lu pour s'adapter à la session.
 
 3. ✍️ **GÉNÉRATION & CITATION**
-   - L'IA lit uniquement le texte cible ciblé et génère sa réponse.
+   - L'IA lit uniquement le PDF ciblé et génère sa réponse.
    - **Règle absolue** : Citation obligatoire au format `[Document, Pages X-Y]`.
 
 </v-clicks>
 
 ::right::
 
-<br><br><br><br>
-
+<div class="px-4 py-8">
 ```mermaid
 graph TD
-    Q[Question Utilisateur] --> R[Étape 1 : Routage]
-    R -->|Lit index_documents.md| Docs(Doc A, Doc B)
-    Docs -->|Extrait| C[Étape 2 : Contexte / Historique]
-    C --> G[Étape 3 : Génération]
+    Q[Question Utilisateur] --> R[1: Routage]
+    R -->|Lit index| Docs(Docs Ciblés)
+    Docs --> C[2: Historique]
+    C --> G[3: Génération]
     G --> A[Réponse Citée]
 ```
+</div>
 
 ---
 layout: default
@@ -121,27 +145,26 @@ layout: default
 
 # 🎛️ 4 Modes d'Utilisation (Flexibilité Totale)
 
-NoRag a été conçu pour s'adapter du prompt unique jusqu'à la production cloud.
+NoRag s'adapte du prompt unique jusqu'à la production cloud.
 
 - **Mode A (Sans Code / Plugin Agent)** 🧩
-  - Copiez un des plugins (`norag/plugins/*`) dans les instructions de ChatGPT, Claude, Grok ou Antigravity. Ajoutez les 3 index Markdown. Et voilà.
+  - Copiez un plugin (`norag/plugins/*`) dans ChatGPT, Claude ou Grok. Ajoutez les 3 index Markdown.
 - **Mode B (CLI Local & Interactif)** 💻
-  - `python -m api.local_query` : Un terminal direct avec mémorisation dans SQLite locale. Rapide et autonome.
+  - `python -m api.local_query` : Terminal avec mémorisation dans SQLite locale.
 - **Mode C (Serveur API Local - SQLite)** 🔌
-  - Un serveur backend FastAPI (`uvicorn api.main:app`), stockant tout en base locale pour créer votre propre interface web.
+  - Un serveur backend FastAPI (`uvicorn api.main:app`), base locale.
 - **Mode D (Serveur API Cloud - Supabase)** ☁️
-  - Variable `NORAG_BACKEND=supabase` : Se connecte instantanément à PostgreSQL/Supabase. Prêt pour Vercel/VPS.
+  - Variable `NORAG_BACKEND=supabase` : Prêt pour Vercel/VPS.
 
 ---
 layout: statement
 ---
 
-# Zéro Hallucination, 
-# Transparence Absolue,
+# Zéro Hallucination.
+# Transparence Absolue.
 # Full LLM Routing.
 
 ### Bienvenue dans le RAG v2 avec NoRag.
-[GitHub / Doc & README](...)
 
 ---
 layout: center
@@ -149,7 +172,7 @@ class: text-center
 ---
 
 # Merci
-Lancez le projet avec : `uvicorn api.main:app`
+Lancez l'API pour démarrer : `uvicorn api.main:app`
 
 <div class="pt-8">
   <span class="text-xs text-gray-500">Présentation générée par Antigravity / Sli.dev</span>
