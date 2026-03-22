@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wmic path:*)",
+      "Bash(wmic ComputerSystem get TotalPhysicalMemory,Manufacturer,Model)",
+      "Bash(wmic cpu:*)",
+      "Bash(\"c:/Users/gmax9/OneDrive/Bureau/theAIproject/NoRag/ANALYSE_NORAG_VS_RAG.md\")"
+    ]
+  }
+}
