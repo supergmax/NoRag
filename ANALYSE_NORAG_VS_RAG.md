@@ -20,6 +20,7 @@
 11. [Comparatif de Prix : Local vs API — Tous Modèles](#11-comparatif-de-prix--local-vs-api--tous-modèles)
 12. [Estimation des Coûts API — Pipeline NoRag Exact (Archiviste + 2 étapes)](#12-estimation-des-coûts-api--pipeline-norag-exact-archiviste--2-étapes)
 13. [Index Hiérarchique — Corpus Quasi-Illimité (Layer d'Abstraction)](#13-index-hiérarchique--corpus-quasi-illimité-layer-dabstraction)
+14. [RAG vs NoRag — Comparatif de Coûts Réels (2 000 docs, 1 000 req/mois)](#14-rag-vs-norag--comparatif-de-couts-reels-2-000-docs-1-000-reqmois)
 
 ---
 
@@ -1610,3 +1611,194 @@ NIVEAU 3 — sections PDF    : ~500 tok/page
 
 > La progression du cout est **logarithmique** : doubler le corpus ne double pas le cout — on ajoute simplement un appel LLM sur quelques milliers de tokens supplementaires.
 > NoRag reste **competitif et maintenable a toute echelle** grace a cette hierarchie de fichiers Markdown.
+
+---
+
+## 14. RAG vs NoRag — Comparatif de Couts Reels (2 000 docs, 1 000 req/mois)
+
+> Comparatif chiffre sur la meme base : **2 000 documents de ~200 pages chacun**, **1 000 requetes/mois**.
+> RAG = Retrieval-Augmented Generation classique avec base vectorielle.
+> NoRag = pipeline hierarchique section 13 (meta-index + index detaille + injection sections).
+
+---
+
+### Pourquoi les couts par requete sont si differents
+
+Le facteur determinant est la **taille du contexte injecte dans le LLM** :
+
+| Architecture | Contexte injecte / requete | Appels LLM | Tokens totaux |
+| ------------ | -------------------------- | ---------- | ------------- |
+| **RAG** | 5 chunks × 512 tok = 2 560 tok | 1 | ~3 820 tok |
+| **NoRag plat** | index complet (~120K) + sections (~7 500) | 2 | ~128 000 tok |
+| **NoRag hierarchique** | meta-index + detail 5 docs + sections | 3 | ~110 000 tok |
+
+> RAG injecte ~30 fois moins de tokens par requete — ce qui se traduit directement en couts LLM.
+
+---
+
+### Couts de setup RAG (une seule fois)
+
+#### Etape 1 — Chunking et embedding des documents
+
+```text
+2 000 docs × 200 pages × 500 tok/page = 200 000 000 tokens a embedder
+Chunking : 512 tok/chunk avec 50 tok overlap → 390 000 chunks au total
+```
+
+| Modele d'embedding | Prix / 1M tok | Cout setup 2 000 docs | Dimensions |
+| ------------------ | ------------- | --------------------- | ---------- |
+| **text-embedding-3-small** (OpenAI) | $0.020 | **$4.00** | 1 536 |
+| **text-embedding-3-large** (OpenAI) | $0.130 | **$26.00** | 3 072 |
+| **voyage-3** (Voyage AI) | $0.060 | **$12.00** | 1 024 |
+| **Cohere embed-v4** | $0.060 | **$12.00** | 1 024 |
+| **Gemini text-embedding-004** | $0.000 | **$0.00** | 768 (gratuit) |
+
+#### Etape 2 — Ecriture dans la base vectorielle
+
+| Fournisseur | Cout ecriture 390K vectors | Notes |
+| ----------- | -------------------------- | ----- |
+| Pinecone Serverless | ~$0.78 | $2/1M writes |
+| Qdrant Cloud | $0.00 | Inclus dans abonnement |
+| pgvector / Neon | $0.00 | Inclus dans DB |
+| Self-hosted (local) | $0.00 | Compute seulement |
+
+**Cout setup RAG total estimé : $5 a $27** selon le modele d'embedding choisi.
+
+---
+
+### Couts mensuels RAG — Infrastructure vectorielle
+
+| Fournisseur Vector DB | Storage 390K vectors (~2.4 GB) | Requetes (1K/mois) | **Total mensuel** |
+| --------------------- | ------------------------------ | ------------------- | ----------------- |
+| **Pinecone Serverless** | ~$2.00/mois | ~$0.04 | **~$2.04** |
+| **Qdrant Cloud** (Starter) | $25.00/mois (plan min) | Inclus | **$25.00** |
+| **pgvector + Neon** | $7.00/mois (plan Launch) | Inclus | **$7.00** |
+| **Chroma Cloud** | ~$5.00/mois (estimé) | Inclus | **~$5.00** |
+| **Self-hosted Qdrant** (VPS $5) | $5.00/mois | Inclus | **$5.00** |
+| **Self-hosted local** | $0.00 | $0.00 | **$0.00** |
+
+---
+
+### Couts LLM par requete RAG vs NoRag hierarchique
+
+#### Budget tokens / requete
+
+| Composant | RAG | NoRag hierarchique |
+| --------- | --- | ------------------ |
+| System prompt | 400 tok | 400 tok (× 3 appels) |
+| Contexte injecte | 2 560 tok (5 chunks) | ~101 000 tok (meta + detail + sections) |
+| Question | 60 tok | 60 tok (× 3 appels) |
+| Output | 800 tok | ~1 200 tok |
+| **Input total** | **3 020 tok** | **~109 930 tok** |
+| **Output total** | **800 tok** | **~1 200 tok** |
+| **Ratio contexte** | **1×** | **~36×** |
+
+#### Cout LLM / requete (1 000 requetes/mois)
+
+| Fournisseur | Modele | RAG $/requete | RAG 1K req | NoRag $/requete | NoRag 1K req | **Ratio** |
+| ----------- | ------ | ------------- | ---------- | --------------- | ------------ | --------- |
+| **Groq** | Llama 3.1 8B | $0.000215 | **$0.22** | $0.005560 | $5.56 | 25× |
+| **Gemini Flash 2.0** | Google | $0.000467 | **$0.47** | $0.008260 | $8.26 | 18× |
+| **Claude Haiku 4.5** | Anthropic | $0.000562 | **$0.56** | $0.008800 | $8.80 | 16× |
+| **GPT-4o mini** | OpenAI | $0.000933 | **$0.93** | $0.016510 | $16.51 | 18× |
+| **Claude Sonnet 4.6** | Anthropic | $0.005616 | **$5.62** | $0.088250 | $88.25 | 16× |
+| **GPT-4.1** | OpenAI | $0.006220 | **$6.22** | $0.109330 | $109.33 | 18× |
+
+---
+
+### Comparatif total Mois 1 / Mois 2+ (2 000 docs, 1 000 req/mois)
+
+#### Avec Pinecone Serverless + text-embedding-3-small ($4 setup embed + $0.78 write + $2/mois DB)
+
+| Fournisseur | Modele | **RAG Mois 1** | **RAG Mois 2+** | **NoRag Mois 1** | **NoRag Mois 2+** | Economie RAG/mois |
+| ----------- | ------ | -------------- | --------------- | ---------------- | ----------------- | ----------------- |
+| **Groq** | Llama 3.1 8B | **$7.00** | **$2.24** | $15.66 | $5.56 | **−$3.32 (-60%)** |
+| **Gemini Flash 2.0** | Google | **$7.25** | **$2.49** | $23.36 | $8.26 | **−$5.77 (-70%)** |
+| **Claude Haiku 4.5** | Anthropic | **$7.34** | **$2.58** | $25.10 | $8.80 | **−$6.22 (-71%)** |
+| **GPT-4o mini** | OpenAI | **$7.71** | **$2.95** | $46.91 | $16.51 | **−$13.56 (-82%)** |
+| **Claude Sonnet 4.6** | Anthropic | **$12.40** | **$7.62** | $250.85 | $88.25 | **−$80.63 (-91%)** |
+| **GPT-4.1** | OpenAI | **$13.00** | **$8.24** | $312.13 | $109.33 | **−$101.09 (-92%)** |
+
+> Le RAG est systematiquement moins cher en couts recurrents — de **60% a 92% d'economie** selon le modele.
+> L'ecart s'amplifie avec les modeles premium (Sonnet, GPT-4.1) car le cout est quasi entierement lie aux tokens.
+
+---
+
+### Couts annuels projetes (12 mois, 1 000 req/mois)
+
+| Fournisseur | Modele | **RAG annuel** | **NoRag annuel** | Economie annuelle |
+| ----------- | ------ | -------------- | ---------------- | ----------------- |
+| Groq | Llama 3.1 8B | **$31.64** | $76.88 | **−$45.24** |
+| Gemini Flash 2.0 | Google | **$34.63** | $111.18 | **−$76.55** |
+| Claude Haiku 4.5 | Anthropic | **$35.74** | $121.90 | **−$86.16** |
+| GPT-4o mini | OpenAI | **$39.23** | $228.27 | **−$189.04** |
+| Claude Sonnet 4.6 | Anthropic | **$91.82** | $1 308.61 | **−$1 216.79** |
+| GPT-4.1 | OpenAI | **$98.66** | $1 521.49 | **−$1 422.83** |
+
+---
+
+### Pourquoi NoRag reste pertinent malgre le cout superieur
+
+Le RAG est moins cher, mais il introduit des **couts caches et des limites qualitatives** significatives :
+
+#### Problemes inherents au RAG
+
+| Probleme | Impact | Frequence |
+| -------- | ------ | --------- |
+| **Chunking aveugle** | Un concept etalé sur 3 pages est coupe en plein milieu | Tres fréquent |
+| **Perte de contexte** | Le chunk retrouve n'a pas le paragraphe precedent/suivant | Systematique |
+| **Hallucination sur manque** | Si le bon chunk n'est pas retrouvé, le LLM invente | Fréquent (top-5 peut rater) |
+| **Embedding perime** | Nouveau document = re-embedding complet + re-indexation | A chaque MAJ |
+| **Debug opaque** | Impossible de savoir pourquoi un chunk a ete retrouvé (ou pas) | Toujours |
+| **Sensibilite orthographique** | Fautes de frappe dans la question = mauvaise recuperation | Parfois |
+| **Multilingual drift** | Embeddings cross-langue moins precis | Si corpus mixte |
+
+#### Avantages NoRag qui justifient le surcout
+
+| Avantage | Valeur metier | Impact |
+| -------- | ------------- | ------ |
+| **Contexte complet** | Le LLM lit les 15 bonnes pages, pas 5 extraits tronques | Reponses plus precises |
+| **Citations exactes** | Page X-Y verifiable dans le PDF original | Confiance utilisateur |
+| **MAJ instantanee** | Nouveau doc = ajouter une entree Markdown, zero re-embedding | Maintenance triviale |
+| **Debuggable** | L'index est lisible par un humain — on voit exactement ce que le LLM voit | Fiabilite |
+| **Zero infrastructure** | Pas de vector DB, pas de service a maintenir | Simplicite operationnelle |
+| **Routage semantique** | Le LLM comprend la question en langage naturel, pas juste la similarite cosinus | Flexibilite |
+
+---
+
+### Quand choisir RAG vs NoRag
+
+| Critere | RAG recommande | NoRag recommande |
+| ------- | -------------- | ---------------- |
+| **Volume requetes** | > 10 000 req/mois | < 5 000 req/mois |
+| **Taille corpus** | Stable (peu de MAJ) | Evolutif (MAJ frequentes) |
+| **Type documents** | Documents homogenes bien structures | Documents heterogenes, techniques, juridiques |
+| **Priorite** | Minimiser le cout a grande echelle | Maximiser la qualite de reponse |
+| **Equipe** | DevOps disponible (infra vector DB) | Equipe reduite, pas de MLOps |
+| **Budget infra** | OK payer $25+/mois pour la DB | Zero infrastructure souhaitee |
+| **Auditabilite** | Acceptable (logs de chunks) | Requise (citations page exacte) |
+| **Modele LLM vise** | GPT-4.1 ou Sonnet → RAG indispensable | Haiku ou Gemini Flash → NoRag raisonnable |
+
+---
+
+### Synthese — Le vrai avantage competitif de NoRag
+
+```text
+RAG =  Infrastructure lourde + cout faible/requete + qualite variable
+NoRag = Zero infrastructure + cout plus eleve/requete + qualite superieure
+
+Point de bascule economique (Gemini Flash 2.0, Pinecone) :
+  - En dessous de ~3 000 req/mois → NoRag et RAG ont un cout total similaire
+  - Au dessus de ~3 000 req/mois → RAG devient structurellement moins cher
+
+Mais le vrai differenciateur de NoRag n'est pas le prix :
+→ C'est la FIABILITE des reponses (contexte complet, citations verifiables)
+→ et la MAINTENABILITE (un fichier Markdown vs une infrastructure vectorielle)
+```
+
+| Volume mensuel | Recommandation |
+| -------------- | -------------- |
+| < 500 req/mois | **NoRag** — simplicite et qualite, ecart de cout negligeable |
+| 500-3 000 req/mois | **NoRag** ou RAG selon priorite qualite vs cout |
+| 3 000-10 000 req/mois | **RAG** pour les modeles premium, **NoRag** pour Haiku/Flash |
+| > 10 000 req/mois | **RAG** systematiquement, sauf si qualite absolue requise |

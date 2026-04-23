@@ -4,7 +4,13 @@
       "Bash(wmic path:*)",
       "Bash(wmic ComputerSystem get TotalPhysicalMemory,Manufacturer,Model)",
       "Bash(wmic cpu:*)",
-      "Bash(\"c:/Users/gmax9/OneDrive/Bureau/theAIproject/NoRag/ANALYSE_NORAG_VS_RAG.md\")"
+      "Bash(\"c:/Users/gmax9/OneDrive/Bureau/theAIproject/NoRag/ANALYSE_NORAG_VS_RAG.md\")",
+      "Bash(npx @marp-team/marp-cli --version)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(ls api/backend/)",
+      "Bash(ls api/routes/)",
+      "Bash(git mv *)"
     ]
   }
 }
