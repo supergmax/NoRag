@@ -1,7 +1,9 @@
 fastapi
 uvicorn[standard]
 google-genai
-supabase
 python-dotenv
-pydantic
+pydantic>=2.0
 pypdf
+pytest
+pytest-asyncio
+httpx
