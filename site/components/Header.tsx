@@ -16,7 +16,7 @@ export function Header() {
     >
       {/* Logo */}
       <a
-        href="#"
+        href="/"
         className="font-semibold text-lg tracking-tight shrink-0"
         style={{ color: "var(--color-text)" }}
       >
