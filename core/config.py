@@ -1,8 +1,4 @@
-"""
-NoRag Core — Configuration centralisée.
-
-Charge les paramètres depuis .env et/ou les variables d'environnement.
-"""
+"""NoRag configuration. Loads .env and exposes typed settings."""
 
 import os
 from pathlib import Path
@@ -12,96 +8,58 @@ from dotenv import load_dotenv
 
 @dataclass
 class Config:
-    """Configuration NoRag."""
-
-    # Racine du projet NoRag
     project_root: Path = field(default_factory=lambda: Path(__file__).parent.parent)
 
-    # Répertoire de données (PDFs, index)
+    # Paths
     data_dir: Path = field(default=None)
-
-    # Répertoire des agents/skills
-    agents_dir: Path = field(default=None)
-
-    # Backend : "filesystem", "sqlite", "supabase"
-    backend: str = "filesystem"
-
-    # Chemins des 3 fichiers index
-    index_agents_path: Path = field(default=None)
-    index_documents_path: Path = field(default=None)
-    index_history_path: Path = field(default=None)
-
-    # SQLite
-    sqlite_db_path: Path = field(default=None)
-
-    # Supabase
-    supabase_url: str = ""
-    supabase_key: str = ""
+    documents_dir: Path = field(default=None)
+    prompts_dir: Path = field(default=None)
+    index_path: Path = field(default=None)
+    system_prompt_path: Path = field(default=None)
 
     # LLM
     gemini_api_key: str = ""
+    router_model: str = "gemini-2.5-flash-lite"
+    answer_model: str = "gemini-2.5-pro"
+    aggregator_model: str = "gemini-2.5-pro"
 
-    # Limites
-    max_history_sessions: int = 50
-    max_documents_per_route: int = 3
-    history_messages_per_session: int = 4
+    # Pipeline
+    default_mode: str = "L1"
+    multil_max_layers: int = 3
+    multil_layer_timeout_s: int = 30
 
     def __post_init__(self):
-        """Charge les valeurs depuis .env et normalise les chemins."""
         load_dotenv(self.project_root / ".env")
 
-        # Data dir
         if self.data_dir is None:
             self.data_dir = self.project_root / "data"
+        if self.documents_dir is None:
+            self.documents_dir = self.data_dir / "documents"
+        if self.prompts_dir is None:
+            self.prompts_dir = self.project_root / "core" / "prompts"
+        if self.index_path is None:
+            self.index_path = self.data_dir / "index.md"
+        if self.system_prompt_path is None:
+            self.system_prompt_path = self.data_dir / "index_system_prompt.md"
 
-        # Agents dir
-        if self.agents_dir is None:
-            self.agents_dir = self.data_dir / "agents"
-
-        # Index paths
-        if self.index_agents_path is None:
-            self.index_agents_path = self.data_dir / "index_agents.md"
-        if self.index_documents_path is None:
-            self.index_documents_path = self.data_dir / "index_documents.md"
-        if self.index_history_path is None:
-            self.index_history_path = self.data_dir / "index_history.md"
-
-        # Backend
-        self.backend = os.getenv("NORAG_BACKEND", self.backend).lower()
-
-        # SQLite
-        if self.sqlite_db_path is None:
-            self.sqlite_db_path = Path(
-                os.getenv("SQLITE_DB_PATH", str(self.project_root / "local" / "norag.db"))
-            )
-
-        # Supabase
-        self.supabase_url = os.getenv("SUPABASE_URL", self.supabase_url)
-        self.supabase_key = os.getenv("SUPABASE_KEY", self.supabase_key)
-
-        # LLM
         self.gemini_api_key = os.getenv("GEMINI_API_KEY", self.gemini_api_key)
+        self.router_model = os.getenv("ROUTER_MODEL", self.router_model)
+        self.answer_model = os.getenv("ANSWER_MODEL", self.answer_model)
+        self.aggregator_model = os.getenv("AGGREGATOR_MODEL", self.aggregator_model)
 
-        # Créer les répertoires si nécessaire
+        self.default_mode = os.getenv("DEFAULT_MODE", self.default_mode)
+        self.multil_max_layers = int(os.getenv("MULTIL_MAX_LAYERS", self.multil_max_layers))
+        self.multil_layer_timeout_s = int(os.getenv("MULTIL_LAYER_TIMEOUT_S", self.multil_layer_timeout_s))
+
         self.data_dir.mkdir(parents=True, exist_ok=True)
-        self.agents_dir.mkdir(parents=True, exist_ok=True)
-
-    def get_index_paths(self) -> dict[str, Path]:
-        """Retourne les 3 chemins d'index sous forme de dictionnaire."""
-        return {
-            "agents": self.index_agents_path,
-            "documents": self.index_documents_path,
-            "history": self.index_history_path,
-        }
+        self.documents_dir.mkdir(parents=True, exist_ok=True)
 
 
-# Singleton global
 _config: Config | None = None
 
 
 def get_config(**kwargs) -> Config:
-    """Retourne la configuration globale (crée une instance si nécessaire)."""
     global _config
-    if _config is None:
+    if _config is None or kwargs:
         _config = Config(**kwargs)
     return _config
