@@ -1,40 +1,55 @@
-import os
+"""FastAPI entrypoint. Exposes /query, /ingest, /documents."""
+
 from pathlib import Path
-from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
-# Charger .env depuis la racine du projet NoRag
-load_dotenv(Path(__file__).parent.parent / ".env")
-
-from .backend.base import BackendBase
-from .backend.sqlite_backend import SQLiteBackend
-from .backend.supabase_backend import SupabaseBackend
-from .routes import query, documents, archive, index
-
-app = FastAPI(
-    title="NoRag API",
-    description="Système NoRag — Q&R documentaire par routage LLM",
-    version="2.0.0",
-)
-
-# --- Sélection du backend ---
-def get_backend() -> BackendBase:
-    backend_type = os.getenv("NORAG_BACKEND", "sqlite").lower()
-    if backend_type == "supabase":
-        return SupabaseBackend()
-    return SQLiteBackend()
-
-# Injection du backend dans les routes via override de dépendance
-app.dependency_overrides[BackendBase] = get_backend
-
-# --- Routes ---
-app.include_router(query.router, tags=["Recherche"])
-app.include_router(documents.router, tags=["Documents"])
-app.include_router(archive.router, tags=["Archivage"])
-app.include_router(index.router)
+from api.schemas import QueryRequest
+from core.config import Config
+from core.storage import Storage
+from core.l1_engine import L1Engine
+from core.multi_l_engine import MultiLEngine
+from core.indexer import Indexer
 
 
-@app.get("/health", tags=["Système"])
-def health():
-    backend_type = os.getenv("NORAG_BACKEND", "sqlite")
-    return {"status": "ok", "backend": backend_type}
+def create_app(project_root: Path | None = None) -> FastAPI:
+    cfg = Config(project_root=project_root) if project_root else Config()
+    storage = Storage(data_dir=cfg.data_dir, documents_dir=cfg.documents_dir)
+
+    app = FastAPI(title="NoRag", version="3.0")
+
+    @app.post("/query")
+    async def query(req: QueryRequest):
+        mode = req.mode or cfg.default_mode
+        if mode == "L1":
+            engine = L1Engine(config=cfg, storage=storage)
+            result = await engine.run(
+                question=req.question,
+                agent_forced=req.agent_hint,
+                index_scope=req.index_scope,
+            )
+            return result.model_dump()
+        elif mode == "MultiL":
+            engine = MultiLEngine(config=cfg, storage=storage)
+            result = await engine.run(
+                question=req.question,
+                preset=req.preset,
+                max_layers=req.max_layers,
+            )
+            return result.model_dump()
+        raise HTTPException(status_code=400, detail=f"Unknown mode: {mode}")
+
+    @app.post("/ingest")
+    async def ingest(doc_id: str, raw_text: str):
+        indexer = Indexer(config=cfg, storage=storage)
+        return await indexer.ingest(doc_id=doc_id, raw_text=raw_text)
+
+    @app.get("/documents")
+    def list_documents():
+        docs = [p.stem for p in cfg.documents_dir.glob("*.md")
+                if p.stem != ".gitkeep"]
+        return {"documents": docs}
+
+    return app
+
+
+app = create_app()
