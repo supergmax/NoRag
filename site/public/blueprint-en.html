@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoRag — Technical Blueprint</title>
+  <style>
+    :root {
+      --bg: #0a0a0b;
+      --surface: #131316;
+      --text: #f5f5f7;
+      --muted: #71717a;
+      --accent: #7c5cff;
+      --accent2: #3ae0c8;
+      --border: rgba(255,255,255,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      padding: 0 1.5rem 4rem;
+    }
+
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── COVER ── */
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 4rem 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4rem;
+    }
+
+    .cover-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    .cover h1 {
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+
+    .cover h1 span { color: var(--accent); }
+
+    .cover-sub {
+      margin-top: 2rem;
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 600px;
+    }
+
+    .cover-meta {
+      margin-top: 3rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      gap: 2rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2em 0.7em;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: var(--accent);
+      color: #fff;
+      vertical-align: middle;
+    }
+
+    /* ── SECTIONS ── */
+    section {
+      margin-bottom: 5rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 2rem 0 0.75rem;
+      color: var(--text);
+    }
+
+    p { color: var(--muted); margin-bottom: 1rem; }
+
+    strong { color: var(--text); }
+
+    /* ── CODE BLOCKS ── */
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      font-family: "SF Mono", "Fira Code", "Fira Mono", monospace;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #d4d4d8;
+      margin: 1.5rem 0;
+    }
+
+    code {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.85em;
+      background: rgba(124,92,255,0.12);
+      color: var(--accent);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+    }
+
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      font-size: 1em;
+    }
+
+    /* ── TABLES ── */
+    .table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--muted);
+    }
+
+    td:first-child { color: var(--text); font-weight: 500; }
+
+    tr:last-child td { border-bottom: none; }
+
+    .check { color: var(--accent2); }
+    .cross  { color: #f87171; }
+
+    /* ── CARDS ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .card-id {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .card h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0.3rem 0 0.5rem;
+    }
+
+    .card p { font-size: 0.9rem; margin-bottom: 0; }
+
+    /* ── PIPELINE DIAGRAM ── */
+    .pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 1.5rem 0;
+    }
+
+    .pipe-step {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .pipe-line {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .pipe-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin-top: 0.35rem;
+      flex-shrink: 0;
+    }
+
+    .pipe-vert {
+      width: 2px;
+      flex: 1;
+      background: var(--border);
+      min-height: 2rem;
+    }
+
+    .pipe-step:last-child .pipe-vert { display: none; }
+
+    .pipe-body {
+      padding-bottom: 1.75rem;
+      flex: 1;
+    }
+
+    .pipe-body strong { display: block; margin-bottom: 0.25rem; font-size: 0.95rem; }
+    .pipe-body span { font-size: 0.85rem; color: var(--muted); }
+
+    /* ── CALLOUT ── */
+    .callout {
+      border-left: 3px solid var(--accent);
+      padding: 1rem 1.5rem;
+      background: rgba(124,92,255,0.07);
+      border-radius: 0 8px 8px 0;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+
+    .callout p { color: var(--text); margin-bottom: 0; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding-top: 2rem;
+      margin-top: 6rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── PRINT ── */
+    @media print {
+      body { background: #fff; color: #111; font-size: 12pt; }
+      :root {
+        --bg: #fff; --surface: #f5f5f5; --text: #111;
+        --muted: #555; --accent: #5b3fff; --accent2: #0da58e;
+        --border: #ddd;
+      }
+      .cover { min-height: auto; page-break-after: always; }
+      section { page-break-inside: avoid; }
+      pre { white-space: pre-wrap; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="cover-label">Technical Blueprint · v2</div>
+    <h1>NoRag.<br/><span>RAG without vectors.</span></h1>
+    <p class="cover-sub">
+      Two explicit pipelines. Markdown indexes you can read and edit.
+      Full document sections fed to the model. Citations you can audit.
+      Zero vector infrastructure.
+    </p>
+    <div class="cover-meta">
+      <span>April 2026</span>
+      <span>github.com/supergmax/NoRag</span>
+    </div>
+  </div>
+
+  <!-- 1. WHAT IS NORAG -->
+  <section>
+    <h2>1. What is NoRag?</h2>
+    <p>
+      NoRag is a <strong>document question-answering system with no embedding layer</strong>.
+      Where classical RAG transforms your documents into opaque mathematical vectors, NoRag keeps
+      everything in <strong>plain, readable Markdown</strong> and delegates routing to the contextual
+      intelligence of modern LLMs.
+    </p>
+    <p>
+      The architecture rests on two Markdown index files and a folder of source documents.
+      No vector database. No embedding API. No chunking strategy to tune.
+    </p>
+
+    <h3>Index layout</h3>
+    <pre>data/
+├── index.md                ← document catalog (doc_id, sections, keywords)
+├── index_system_prompt.md  ← agent catalog (agent_id, capabilities, system prompt)
+└── documents/
+    ├── contract_saas.md    ← full text, split by ## section_id headers
+    ├── cloud_architecture.md
+    └── ...</pre>
+
+    <p>
+      <code>index.md</code> is the routing brain — it lists every document with its sections and
+      keywords, compact enough to fit in a single LLM context window. The Router model reads it,
+      picks the relevant documents and the appropriate agent, then the Answer model reads the full
+      sections and responds with mandatory citations.
+    </p>
+  </section>
+
+  <!-- 2. L1 PIPELINE -->
+  <section>
+    <h2>2. The L1 Pipeline — 2 calls, deterministic</h2>
+    <p>
+      L1 is the core NoRag primitive. Every request is resolved in exactly
+      <strong>two LLM calls</strong>, no matter how complex the question.
+    </p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-line"><div class="pipe-dot"></div><div class="pipe-vert"></div></div>
+        <div class="pipe-body">
+          <strong>Call 1 — Router (SLM)</strong>
+          <span>
+            Reads <code>index.md</code> + <code>index_system_prompt.md</code> + the user question.
+            Returns a structured JSON:
+            <code>{ agent_id, documents: [{ doc_id, sections }], reasoning }</code>.
+            A small, fast model (e.g. Gemini 2.5 Flash Lite) handles this cheaply.
+          </span>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-line"><div class="pipe-dot"></div><div class="pipe-vert"></div></div>
+        <div class="pipe-body">
+          <strong>Storage read</strong>
+          <span>
+            The engine extracts the selected <code>## section_id</code> blocks from the relevant
+            document files. No similarity search — pure regex extraction on known section headers.
+          </span>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-line"><div class="pipe-dot"></div><div class="pipe-vert"></div></div>
+        <div class="pipe-body">
+          <strong>Call 2 — Answer (LLM)</strong>
+          <span>
+            Receives the selected agent's system prompt + the full extracted sections + the question.
+            Responds in natural language with mandatory citations in the format
+            <code>[doc_id, section_id]</code>. A capable model (e.g. Gemini 2.5 Pro) handles this.
+          </span>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-line"><div class="pipe-dot" style="background:var(--accent2)"></div><div class="pipe-vert"></div></div>
+        <div class="pipe-body">
+          <strong>L1Result</strong>
+          <span>
+            <code>{ answer, citations, agent_id, tokens: { router, answer } }</code>.
+            Every citation is traceable to an exact section in an exact document.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <pre>POST /query
+{
+  "question": "What SLA is guaranteed in the SaaS contract?",
+  "mode": "L1"
+}
+
+→ {
+  "answer": "The SaaS contract guarantees 99.9% uptime ...",
+  "citations": [{"doc_id": "contract_saas", "section": "sla_guarantees"}],
+  "agent_id": "juriste_conformite",
+  "tokens": {"router": 1820, "answer": 3410}
+}</pre>
+
+    <div class="callout">
+      <p>
+        The Router reads both index files in a single call, selecting both the right
+        documents <em>and</em> the right agent simultaneously — keeping the total at exactly 2 LLM calls.
+      </p>
+    </div>
+  </section>
+
+  <!-- 3. MULTI_L PIPELINE -->
+  <section>
+    <h2>3. The Multi_L Pipeline — parallel, then synthesized</h2>
+    <p>
+      Multi_L fans out N independent L1 layers, runs them concurrently with
+      <code>asyncio.gather</code>, then synthesizes the results through an Aggregator LLM.
+      Use it when a single L1 pass is not enough — multi-perspective analysis, question decomposition,
+      or corpus partitioning.
+    </p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-line"><div class="pipe-dot"></div><div class="pipe-vert"></div></div>
+        <div class="pipe-body">
+          <strong>Planner (SLM)</strong>
+          <span>
+            Reads <code>index.md</code> + question + preset → emits a JSON array of layer plans:
+            <code>[{ agent_id, index_scope, sub_question }]</code>.
+            Capped at <code>multil_max_layers</code> (default 3).
+          </span>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-line"><div class="pipe-dot"></div><div class="pipe-vert"></div></div>
+        <div class="pipe-body">
+          <strong>N × L1 in parallel</strong>
+          <span>
+            Each layer plan spawns a full L1 run (Router + Answer) with its own
+            agent, scoped index, and sub-question. All layers run concurrently.
+            Each has a configurable timeout (<code>multil_layer_timeout_s</code>, default 30 s).
+          </span>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-line"><div class="pipe-dot" style="background:var(--accent2)"></div><div class="pipe-vert"></div></div>
+        <div class="pipe-body">
+          <strong>Aggregator (LLM)</strong>
+          <span>
+            Receives all layer answers. Writes a unified synthesis that
+            explicitly names contradictions, preserves all citations, and notes
+            which layer produced which insight.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <h3>Four presets</h3>
+    <div class="cards">
+      <div class="card">
+        <div class="card-id">A</div>
+        <h4>Multi-Agent</h4>
+        <p>Same question, different agents. Cross-perspective analysis in one response.</p>
+      </div>
+      <div class="card">
+        <div class="card-id">B</div>
+        <h4>Decomposition</h4>
+        <p>Split the question into independent sub-questions, each routed separately.</p>
+      </div>
+      <div class="card">
+        <div class="card-id">C</div>
+        <h4>Multi-Corpus</h4>
+        <p>Same question, different agents, different document scopes.</p>
+      </div>
+      <div class="card">
+        <div class="card-id">D</div>
+        <h4>Hybrid / Auto</h4>
+        <p>The Planner freely combines agents, sub-questions, and scopes. Best for open-ended complex queries.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. NORAG VS RAG -->
+  <section>
+    <h2>4. NoRag vs RAG — Technical Comparison</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Criterion</th>
+            <th>RAG (classical)</th>
+            <th>NoRag</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Routing method</td>
+            <td>Cosine similarity on vectors</td>
+            <td>LLM semantic routing on Markdown index</td>
+          </tr>
+          <tr>
+            <td>Infrastructure</td>
+            <td>Vector DB (Pinecone, Weaviate, pgvector…)</td>
+            <td>Plain Markdown files</td>
+          </tr>
+          <tr>
+            <td>Embeddings</td>
+            <td><span class="cross">✗</span> Required (cost per token)</td>
+            <td><span class="check">✓</span> None</td>
+          </tr>
+          <tr>
+            <td>Human readability</td>
+            <td><span class="cross">✗</span> Opaque vectors</td>
+            <td><span class="check">✓</span> 100% — any text editor</td>
+          </tr>
+          <tr>
+            <td>Context given to LLM</td>
+            <td>Arbitrary top-K chunks</td>
+            <td>Complete named sections</td>
+          </tr>
+          <tr>
+            <td>Citations</td>
+            <td>Approximate (chunk offset)</td>
+            <td><span class="check">✓</span> Exact <code>[doc_id, section]</code></td>
+          </tr>
+          <tr>
+            <td>Session memory</td>
+            <td>Must be implemented separately</td>
+            <td><span class="check">✓</span> Native via index files</td>
+          </tr>
+          <tr>
+            <td>Auditability</td>
+            <td>Debug requires ML expertise</td>
+            <td><span class="check">✓</span> Read the index, see the routing</td>
+          </tr>
+          <tr>
+            <td>Scalability</td>
+            <td><span class="check">✓</span> Billions of documents</td>
+            <td>Up to ~500 documents (index size)</td>
+          </tr>
+          <tr>
+            <td>Setup complexity</td>
+            <td>2–6 weeks (chunker + embedder + DB + orchestrator)</td>
+            <td>2–4 hours (or 5 min with Mode A)</td>
+          </tr>
+          <tr>
+            <td>Vendor lock-in</td>
+            <td>High (Pinecone, Weaviate migration is costly)</td>
+            <td><span class="check">✓</span> None — plain .md files</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Routing quality by scenario</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Scenario</th><th>NoRag</th><th>RAG</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Direct, precise question</td>
+            <td><span class="check">✓</span> Excellent</td>
+            <td><span class="check">✓</span> Excellent</td>
+          </tr>
+          <tr>
+            <td>Vague or ambiguous question</td>
+            <td><span class="check">✓</span> Good — LLM understands intent</td>
+            <td>⚠ Medium — depends on embeddings</td>
+          </tr>
+          <tr>
+            <td>Cross-document question</td>
+            <td><span class="check">✓</span> Good — LLM combines</td>
+            <td>⚠ Hard — isolated chunks</td>
+          </tr>
+          <tr>
+            <td>Rare technical terms</td>
+            <td><span class="check">✓</span> Good — keywords in index</td>
+            <td>⚠ Variable — OOV embeddings</td>
+          </tr>
+          <tr>
+            <td>10,000+ documents</td>
+            <td>⚠ Index too large for context</td>
+            <td><span class="check">✓</span> Scalable</td>
+          </tr>
+          <tr>
+            <td>Frequent document updates</td>
+            <td><span class="check">✓</span> Fast re-index (Archivist LLM)</td>
+            <td>⚠ Expensive re-embedding</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 5. COST ANALYSIS -->
+  <section>
+    <h2>5. Cost Analysis</h2>
+
+    <h3>Setup costs</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Item</th><th>NoRag</th><th>RAG (classical)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Infrastructure</td><td>$0 (local) or ~$25/mo (Supabase Pro)</td><td>$70–500/mo (Pinecone, Weaviate)</td></tr>
+          <tr><td>Embedding API</td><td>$0 — no embeddings</td><td>$0.02–0.13 per 1M tokens</td></tr>
+          <tr><td>Initial dev time</td><td>2–4 hours</td><td>2–6 weeks</td></tr>
+          <tr><td>Required skills</td><td>Basic Python (or zero — Mode A)</td><td>ML + DevOps + advanced Python</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Per-request cost — NoRag with Gemini Flash</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Component</th><th>Tokens</th><th>Estimated cost</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Router call (index ~5K + question)</td><td>~6K input</td><td>$0.0009</td></tr>
+          <tr><td>Answer call (sections ~10K + question)</td><td>~12K input + 1K output</td><td>$0.0020</td></tr>
+          <tr><td><strong>Total per request</strong></td><td>~18K tokens</td><td><strong>~$0.003</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>12-month TCO — 1,000 requests/month, 100 documents</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Scenario</th><th>NoRag (Gemini Flash)</th><th>RAG (GPT-4o + Pinecone)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Setup</td><td>~$2</td><td>$500–2,000 (dev time)</td></tr>
+          <tr><td>Infrastructure / year</td><td>$0–300</td><td>$840–6,000</td></tr>
+          <tr><td>LLM requests / year</td><td>$36</td><td>$168</td></tr>
+          <tr><td>Maintenance / year</td><td>$60</td><td>$500–1,500</td></tr>
+          <tr><td><strong>Total 12 months</strong></td><td><strong>~$100–400</strong></td><td><strong>~$2,000–10,000</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <p>
+        NoRag with Gemini Flash is <strong>4–5× cheaper per request</strong> than a typical RAG pipeline
+        on GPT-4o, despite consuming more tokens — because Gemini Flash is 10–20× cheaper per token.
+      </p>
+    </div>
+  </section>
+
+  <!-- 6. USE CASES -->
+  <section>
+    <h2>6. When to Use NoRag</h2>
+
+    <h3>Choose NoRag when you have:</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Use case</th><th>Why NoRag</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Private document library (10–500 docs)</td><td>Readable index, instant setup, precise citations</td></tr>
+          <tr><td>Internal knowledge base</td><td>Full control, auditability, no vendor lock-in</td></tr>
+          <tr><td>Prototype / MVP</td><td>Mode A (no-code) operational in 5 minutes</td></tr>
+          <tr><td>Critical technical documentation</td><td>Section-level citations, guaranteed traceability</td></tr>
+          <tr><td>Non-technical team</td><td>Markdown index editable in Notion or Excel</td></tr>
+          <tr><td>Limited budget</td><td>No Vector DB, no separate embedding API</td></tr>
+          <tr><td>Cross-document complex questions</td><td>LLM intelligently combines multiple documents</td></tr>
+          <tr><td>Compliance / auditability</td><td>Every routing decision is explainable</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Choose RAG when you have:</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Use case</th><th>Why RAG</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Massive corpus (1,000+ docs)</td><td>Vector search scales; LLM index becomes impractical</td></tr>
+          <tr><td>Real-time updates</td><td>New documents indexed in seconds</td></tr>
+          <tr><td>Multimodal content</td><td>Image/audio/video embeddings (CLIP, Whisper…)</td></tr>
+          <tr><td>Experienced ML team</td><td>Stack is well understood, monitoring in place</td></tr>
+          <tr><td>Consumer-scale application</td><td>Scalability is critical — millions of users</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 7. QUICK START -->
+  <section>
+    <h2>7. Quick Start</h2>
+
+    <h3>Mode A — No-code (5 minutes)</h3>
+    <p>Copy the plugin prompt from <code>norag/plugins/claude.md</code> (or the provider of your choice) into your LLM of choice. L1 pipeline only. No code, no server.</p>
+
+    <h3>Mode B — API (FastAPI)</h3>
+    <pre>git clone https://github.com/supergmax/NoRag
+cd NoRag
+pip install -e ".[dev]"
+export GEMINI_API_KEY=your_key
+
+# Start the API
+uvicorn api.main:app --reload
+
+# Query L1
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What are the SLA terms?", "mode": "L1"}'
+
+# Query Multi_L preset A
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Analyze risk across all contracts", "mode": "MultiL", "preset": "A"}'</pre>
+
+    <h3>Mode C — Claude Code skill</h3>
+    <pre># Install the skill (copy ~/.claude/skills/norag/SKILL.md from the repo)
+# Then in any Claude Code session:
+
+/norag What are the SLA terms in the SaaS contract?
+/norag multi_l A Analyze our contracts from all angles
+/norag list
+/norag agents</pre>
+
+    <h3>Adding documents</h3>
+    <pre>POST /ingest
+{
+  "doc_id": "new_contract_2026",
+  "raw_text": "Full document text here..."
+}
+
+# The Archivist LLM automatically:
+# 1. Extracts sections and keywords
+# 2. Appends a card to data/index.md
+# 3. Writes data/documents/new_contract_2026.md</pre>
+
+    <h3>Project structure</h3>
+    <pre>NoRag/
+├── core/
+│   ├── config.py          ← ROUTER_MODEL, ANSWER_MODEL, AGGREGATOR_MODEL
+│   ├── storage.py         ← read_index(), read_document_sections()
+│   ├── llm_client.py      ← generate(), generate_json()
+│   ├── l1_engine.py       ← L1Engine.run()
+│   ├── multi_l_engine.py  ← MultiLEngine.run()
+│   ├── indexer.py         ← Indexer.ingest()
+│   └── prompts/
+│       ├── router.md
+│       ├── planner.md
+│       └── aggregator.md
+├── api/
+│   ├── main.py            ← FastAPI app, create_app()
+│   └── schemas.py         ← Pydantic v2 models
+├── data/
+│   ├── index.md
+│   ├── index_system_prompt.md
+│   └── documents/
+├── site/                  ← Next.js marketing site
+└── tests/                 ← 28 tests, all green</pre>
+  </section>
+
+  <footer>
+    <span>NoRag v2 · Technical Blueprint · April 2026</span>
+    <a href="https://github.com/supergmax/NoRag">github.com/supergmax/NoRag</a>
+  </footer>
+
+</div>
+</body>
+</html>

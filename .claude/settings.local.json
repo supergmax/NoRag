@@ -10,7 +10,21 @@
       "Bash(git commit *)",
       "Bash(ls api/backend/)",
       "Bash(ls api/routes/)",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(pip install *)",
+      "Bash(python -m pytest tests/test_config.py -v)",
+      "Bash(python -m pytest tests/test_llm_client.py -v)",
+      "Bash(python -m pytest tests/test_storage.py -v)",
+      "Bash(python *)",
+      "Bash(git -C /c/Users/gmax9/OneDrive/Bureau/theAIproject/NoRag add core/storage.py tests/test_storage.py)",
+      "Bash(git -C /c/Users/gmax9/OneDrive/Bureau/theAIproject/NoRag commit -m ' *)",
+      "Bash(mkdir -p /c/Users/gmax9/OneDrive/Bureau/theAIproject/NoRag/core/prompts)",
+      "Bash(mkdir -p /c/Users/gmax9/OneDrive/Bureau/theAIproject/NoRag/data/documents)",
+      "Bash(touch /c/Users/gmax9/OneDrive/Bureau/theAIproject/NoRag/data/documents/.gitkeep)",
+      "Bash(git tag *)",
+      "Bash(npx create-next-app@latest site --typescript --tailwind --app --no-src-dir --no-eslint --import-alias \"@/*\" --use-npm --yes)",
+      "Bash(npm install *)",
+      "Bash(npm run *)"
     ]
   }
 }

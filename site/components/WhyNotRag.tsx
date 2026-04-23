@@ -1,3 +1,5 @@
+import React from "react";
+
 const rows = [
   { k: "Infrastructure", rag: "Vector DB + embedding model", norag: "Plain Markdown files" },
   { k: "Cost of adding a doc", rag: "Recurring (re-embed + storage)", norag: "One-shot archivist pass" },
@@ -37,11 +39,11 @@ export function WhyNotRag() {
             </div>
           ))}
           {rows.map((r) => (
-            <>
-              <div key={r.k + "k"} className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>{r.k}</div>
-              <div key={r.k + "r"} className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)", color: "var(--color-muted)" }}>{r.rag}</div>
-              <div key={r.k + "n"} className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>{r.norag}</div>
-            </>
+            <React.Fragment key={r.k}>
+              <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>{r.k}</div>
+              <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)", color: "var(--color-muted)" }}>{r.rag}</div>
+              <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>{r.norag}</div>
+            </React.Fragment>
           ))}
         </div>
       </div>

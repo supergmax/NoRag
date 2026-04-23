@@ -28,14 +28,14 @@ export function Hero() {
 
       <div className="mt-12 flex gap-4">
         <a
-          href="/blueprint.pdf"
+          href="/blueprint-en.html"
           className="px-6 py-3 rounded-full font-medium hover:opacity-90 transition"
           style={{ background: "var(--color-accent)", color: "#fff" }}
         >
           Read the blueprint
         </a>
         <a
-          href="https://github.com/"
+          href="https://github.com/supergmax/NoRag"
           className="px-6 py-3 rounded-full border hover:border-white/40 transition"
           style={{ borderColor: "rgba(255,255,255,0.15)" }}
         >
