@@ -1,51 +1,145 @@
 ---
 name: norag
-description: Query, manage, and archive documents in the NoRag knowledge base using 3-index LLM routing.
+description: Query documents in the NoRag knowledge base using L1 (2-call pipeline) or Multi_L (parallel perspectives + synthesis). Trigger on /norag or when user asks to search documents with NoRag.
 ---
 
-# NoRag — Skill Claude Code
+# NoRag Skill — L1 & Multi_L
 
-Tu es connecté à **NoRag**, un système de Q&R documentaire par routage LLM en 3 index.
+Ce skill implémente les deux pipelines NoRag directement dans Claude Code, en lisant les fichiers locaux sans API externe.
 
-## Contexte
+## Variables de contexte
 
-NoRag utilise **3 fichiers index** que tu dois charger comme contexte :
+Avant tout, identifie le répertoire racine NoRag (là où se trouvent `data/index.md` et `data/index_system_prompt.md`). Par défaut : le répertoire de travail courant.
 
-1. **`data/index_agents.md`** — Liste des agents/skills disponibles et leurs compétences
-2. **`data/index_documents.md`** — Catalogue détaillé des documents indexés (routage)
-3. **`data/index_history.md`** — Historique des conversations avec résumés
-
-## Pipeline en 3 étapes
-
-### Étape 1 — ROUTAGE (silencieux)
-Lire `data/index_documents.md` + la question → identifier 1 à 3 documents pertinents.
-Ne PAS afficher cette étape.
-
-### Étape 2 — EXTRACTION
-Lire les pages ciblées du PDF identifié à l'étape 1 :
 ```
-Read: data/<fichier>.pdf  pages: "X-Y"
+INDEX_PATH      = <root>/data/index.md
+AGENTS_PATH     = <root>/data/index_system_prompt.md
+DOCUMENTS_DIR   = <root>/data/documents/
 ```
 
-### Étape 3 — GÉNÉRATION
-Répondre depuis le texte complet avec citations obligatoires : `[Document, Pages X-Y]`
+---
 
-## Correspondance fichiers
+## Pipeline NoRag L1 (défaut)
 
-| Document | PDF |
-|----------|-----|
-| Un libéral nommé Jésus | `Un_libéral_nommé_Jesus.pdf` |
-| Cessez de vous faire avoir | `241107_Cessez_réimpression.pdf` |
-| Les Mondes de demain | `251031_Mondes de demain_impression_intérieur.pdf` |
-| La Vérité vous rendra libre | `INT-23120240-le12a09h46mn.pdf` |
+**Utilise L1 quand** : question directe, un angle suffisant, vitesse souhaitée.
+
+### Étape 1 — ROUTAGE (silencieux, ne pas afficher)
+
+Lis `data/index.md` ET `data/index_system_prompt.md`.
+
+En te basant sur la question, détermine :
+- **`agent_id`** : l'agent le mieux adapté dans `index_system_prompt.md` (cherche `## <agent_id>` et lis sa description + "Quand l'utiliser")
+- **`documents`** : 1 à 3 entrées de `index.md` avec leurs `section_id` pertinentes
+
+Ne montre pas le résultat du routage à l'utilisateur.
+
+### Étape 2 — LECTURE DES SECTIONS
+
+Pour chaque `(doc_id, [section_id, ...])` sélectionné, lis le fichier :
+```
+Read: data/documents/<doc_id>.md
+```
+Extrais uniquement les sections `## <section_id>` identifiées.
+
+Si un fichier est absent : note-le silencieusement, continue avec les autres.
+
+### Étape 3 — RÉPONSE
+
+Adopte le system prompt de l'agent sélectionné (bloc "> ..." sous `**System prompt**` dans `index_system_prompt.md`).
+
+Réponds en citant obligatoirement : `[doc_id, section_id]`
+
+Si aucun document ne couvre la question : dis-le explicitement, ne devine pas.
+
+---
+
+## Pipeline NoRag Multi_L
+
+**Utilise Multi_L quand** : question complexe, multi-angles, ou l'utilisateur précise `mode=MultiL` ou un preset.
+
+### Presets disponibles
+
+| Preset | Description |
+|---|---|
+| **A** | Même question, agents différents (perspectives croisées) |
+| **B** | Question décomposée en sous-questions, même agent |
+| **C** | Même question, agents différents, sous-ensembles de docs différents |
+| **D** | Hybride auto — tu choisis la meilleure combinaison |
+
+### Étape 1 — PLANIFICATION (silencieuse)
+
+Lis `data/index.md` et `data/index_system_prompt.md`.
+
+Construis un plan de layers. Chaque layer = `(agent_id, question_du_layer, doc_scope)`.
+
+Exemple pour preset A sur "Faut-il adopter le cloud AWS ?" :
+```
+Layer 1: agent=analyste_technique,  question="Faut-il adopter AWS ?", scope=all
+Layer 2: agent=juriste_conformite,  question="Faut-il adopter AWS ?", scope=all
+Layer 3: agent=analyste_finance,    question="Faut-il adopter AWS ?", scope=all
+```
+
+### Étape 2 — EXÉCUTION DES LAYERS
+
+Pour chaque layer, exécute L1 complet (routage + lecture + réponse partielle).
+
+Affiche brièvement le layer en cours : `> Layer N (agent: <id>)...`
+
+### Étape 3 — AGRÉGATION
+
+Synthétise toutes les réponses en :
+1. Structurant par perspective (preset A), sous-question (B), ou corpus (C)
+2. Nommant explicitement les contradictions entre layers
+3. Conservant toutes les citations `[doc_id, section_id]`
+4. Concluant par un paragraphe **Synthèse**
+
+---
 
 ## Commandes
-- `/list` — Lister tous les documents
-- `/archive [texte]` — Générer une fiche index structurée
-- `/agents` — Lister les agents disponibles
-- `/history` — Afficher le résumé des sessions récentes
 
-## Règles
-1. EXCLUSIVEMENT répondre depuis les documents identifiés à l'étape 1
-2. Toujours citer les sources : [Document, Pages X-Y]
-3. Si hors-sujet : "Les documents ne me permettent pas de répondre."
+| Commande | Action |
+|---|---|
+| `/norag <question>` | L1 sur la question |
+| `/norag multi_l <question>` | Multi_L preset D (auto) |
+| `/norag multi_l A <question>` | Multi_L preset A (multi-agent) |
+| `/norag multi_l B <question>` | Multi_L preset B (décomposition) |
+| `/norag multi_l C <question>` | Multi_L preset C (multi-corpus) |
+| `/norag list` | Lister tous les docs dans `data/index.md` |
+| `/norag agents` | Lister tous les agents dans `index_system_prompt.md` |
+| `/norag ingest <doc_id>` | Générer une fiche index pour un texte collé ensuite |
+
+---
+
+## Commande `/norag ingest <doc_id>`
+
+L'utilisateur colle le texte brut du document. Tu génères :
+
+**1. Une fiche pour `data/index.md`** au format exact :
+```markdown
+## <doc_id>
+- **Titre** : ...
+- **Résumé** : ...
+- **Sections** :
+  - `<section_id>` — <titre section> — mots-clés : ...
+```
+
+**2. Le fichier `data/documents/<doc_id>.md`** structuré en sections :
+```markdown
+## <section_id_1>
+<contenu complet de la section>
+
+## <section_id_2>
+<contenu complet>
+```
+
+Écris les deux fichiers directement avec le Write tool, puis dis à l'utilisateur d'ajouter la fiche dans `data/index.md`.
+
+---
+
+## Règles absolues
+
+1. **Citations obligatoires** : chaque affirmation factuellement issue d'un document doit citer `[doc_id, section_id]`
+2. **Pas d'invention** : si l'info n'est pas dans les documents, dis-le
+3. **Routage silencieux** : l'étape de routage ne s'affiche pas
+4. **Sections complètes** : lis la section entière, pas un extrait
+5. **Multi_L** : montre les layers progressivement, puis la synthèse finale
