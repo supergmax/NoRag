@@ -1,32 +1,30 @@
+"use client";
 import React from "react";
-
-const rows = [
-  { k: "Infrastructure", rag: "Vector DB + embedding model", norag: "Plain Markdown files" },
-  { k: "Cost of adding a doc", rag: "Recurring (re-embed + storage)", norag: "One-shot archivist pass" },
-  { k: "Context given to LLM", rag: "Arbitrary chunks", norag: "Complete sections" },
-  { k: "Auditability", rag: "Opaque vectors", norag: "Git-diffable Markdown" },
-  { k: "Citations", rag: "Approximate", norag: "Precise [doc_id, section]" },
-  { k: "Who fixes the index?", rag: "Data scientist", norag: "Any dev who reads MD" },
-];
+import { useLang } from "@/lib/i18n";
 
 export function WhyNotRag() {
+  const { t } = useLang();
+  const th = t.whyNotRag;
+
   return (
-    <section className="py-32 px-6 max-w-5xl mx-auto">
+    <section id="comparison" className="py-32 px-6 max-w-5xl mx-auto scroll-mt-20">
       <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
-        Why not{" "}
+        {th.title}{" "}
         <span className="line-through" style={{ color: "var(--color-muted)" }}>
           RAG
         </span>
         .
       </h2>
       <p className="mt-4 max-w-2xl" style={{ color: "var(--color-muted)" }}>
-        Vectors are opaque, chunks are arbitrary, and ingestion keeps paying.
-        NoRag swaps the whole stack for Markdown the LLM can read directly.
+        {th.subtitle}
       </p>
 
-      <div className="mt-16 border rounded-2xl overflow-hidden" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
+      <div
+        className="mt-16 border rounded-2xl overflow-hidden"
+        style={{ borderColor: "rgba(255,255,255,0.1)" }}
+      >
         <div className="grid grid-cols-3 text-sm">
-          {["Criterion", "RAG", "NoRag"].map((h, i) => (
+          {th.headers.map((h, i) => (
             <div
               key={h}
               className="p-4"
@@ -38,11 +36,20 @@ export function WhyNotRag() {
               {h}
             </div>
           ))}
-          {rows.map((r) => (
+          {th.rows.map((r) => (
             <React.Fragment key={r.k}>
-              <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>{r.k}</div>
-              <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)", color: "var(--color-muted)" }}>{r.rag}</div>
-              <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>{r.norag}</div>
+              <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                {r.k}
+              </div>
+              <div
+                className="p-4"
+                style={{ borderTop: "1px solid rgba(255,255,255,0.05)", color: "var(--color-muted)" }}
+              >
+                {r.rag}
+              </div>
+              <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                {r.norag}
+              </div>
             </React.Fragment>
           ))}
         </div>

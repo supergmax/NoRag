@@ -24,7 +24,8 @@
       "Bash(git tag *)",
       "Bash(npx create-next-app@latest site --typescript --tailwind --app --no-src-dir --no-eslint --import-alias \"@/*\" --use-npm --yes)",
       "Bash(npm install *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(npx next *)"
     ]
   }
 }

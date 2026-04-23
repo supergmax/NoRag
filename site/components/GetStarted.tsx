@@ -1,29 +1,17 @@
-const cards = [
-  {
-    title: "API",
-    body: "Full L1 + Multi_L via FastAPI. Any client, any language.",
-    cta: "uvicorn api.main:app --reload",
-  },
-  {
-    title: "Web chat",
-    body: "Copy a plugin prompt into ChatGPT, Claude, Gemini, or Grok. L1 only.",
-    cta: "norag/plugins/<provider>.md",
-  },
-  {
-    title: "Claude Code skill",
-    body: "Use /norag directly in your terminal. L1 + Multi_L, reads local files.",
-    cta: "/norag <question>",
-  },
-];
+"use client";
+import { useLang } from "@/lib/i18n";
 
 export function GetStarted() {
+  const { t } = useLang();
+  const th = t.getStarted;
+
   return (
-    <section className="py-32 px-6 max-w-5xl mx-auto">
+    <section id="get-started" className="py-32 px-6 max-w-5xl mx-auto scroll-mt-20">
       <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
-        Get started.
+        {th.title}
       </h2>
       <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {cards.map((c) => (
+        {th.cards.map((c) => (
           <div
             key={c.title}
             className="p-6 rounded-xl"

@@ -1,6 +1,7 @@
 "use client";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import { useLang } from "@/lib/i18n";
 
 function Box({
   label,
@@ -26,7 +27,9 @@ function Box({
         border: `1px solid ${color}`,
       }}
     >
-      <div className="font-medium" style={{ color }}>{label}</div>
+      <div className="font-medium" style={{ color }}>
+        {label}
+      </div>
       {subtitle && (
         <div className="text-xs mt-1" style={{ color: "var(--color-muted)" }}>
           {subtitle}
@@ -51,17 +54,17 @@ function Arrow({ active, delay }: { active: boolean; delay: number }) {
 export function L1Demo() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: false, margin: "-30% 0px" });
+  const { t } = useLang();
+  const th = t.l1Demo;
 
   return (
-    <section ref={ref} className="py-32 px-6 max-w-5xl mx-auto">
+    <section id="l1" ref={ref} className="py-32 px-6 max-w-5xl mx-auto scroll-mt-20">
       <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
-        L1{" "}
-        <span style={{ color: "var(--color-muted)" }}>— two calls, done.</span>
+        {th.title}{" "}
+        <span style={{ color: "var(--color-muted)" }}>{th.titleSub}</span>
       </h2>
       <p className="mt-4 max-w-2xl" style={{ color: "var(--color-muted)" }}>
-        Call 1: a small model reads the question, the document catalog, and the
-        agent catalog. It picks an agent and the relevant sections. Call 2: the
-        chosen agent reads those sections and answers with citations.
+        {th.subtitle}
       </p>
 
       <div className="mt-16 flex flex-col md:flex-row items-center gap-4 md:gap-0">
@@ -98,7 +101,7 @@ export function L1Demo() {
   "documents": [
     { "doc_id": "contrat_acme", "sections": ["art_7", "annexe_A"] }
   ],
-  "reasoning": "Question de rétention contractuelle → juriste + clauses SLA"
+  "reasoning": "Contract retention question → juriste + SLA clauses"
 }`}</motion.pre>
     </section>
   );
