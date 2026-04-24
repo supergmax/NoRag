@@ -20,10 +20,10 @@ export function WhyNotRag() {
       </p>
 
       <div
-        className="mt-16 border rounded-2xl overflow-hidden"
+        className="mt-16 border rounded-2xl overflow-x-auto"
         style={{ borderColor: "rgba(255,255,255,0.1)" }}
       >
-        <div className="grid grid-cols-3 text-sm">
+        <div className="grid grid-cols-3 text-sm min-w-[480px]">
           {th.headers.map((h, i) => (
             <div
               key={h}

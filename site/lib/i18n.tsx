@@ -15,7 +15,7 @@ export const translations = {
     },
     hero: {
       subtitle:
-        "Two explicit pipelines. Markdown indexes you can read. Full sections fed to the model. Citations you can audit.",
+        "Ask your docs anything. Get an answer you can trace — full sections, exact citations. No vector DB, no embedding API, no recurring cost.",
       cta1: "Read the blueprint",
       cta2: "GitHub",
     },
@@ -117,7 +117,7 @@ export const translations = {
     },
     hero: {
       subtitle:
-        "Deux pipelines explicites. Des index Markdown lisibles. Des sections complètes transmises au modèle. Des citations auditables.",
+        "Interrogez vos docs sans limites. Des réponses traçables — sections complètes, citations exactes. Pas de vector DB, pas d'API d'embedding, aucun coût récurrent.",
       cta1: "Lire le blueprint",
       cta2: "GitHub",
     },

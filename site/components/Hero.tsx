@@ -12,7 +12,7 @@ export function Hero() {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="text-6xl md:text-8xl font-semibold tracking-tight text-center"
+        className="text-5xl sm:text-6xl md:text-8xl font-semibold tracking-tight text-center"
       >
         NoRag.
         <br />
@@ -33,7 +33,7 @@ export function Hero() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.6 }}
-        className="mt-12 flex gap-4"
+        className="mt-12 flex flex-wrap justify-center gap-4"
       >
         <a
           href="/blueprint"
