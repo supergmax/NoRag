@@ -19,11 +19,43 @@ export function WhyNotRag() {
         {th.subtitle}
       </p>
 
+      {/* Mobile: card layout */}
+      <div className="mt-16 md:hidden space-y-3">
+        {th.rows.map((r) => (
+          <div
+            key={r.k}
+            className="rounded-xl overflow-hidden"
+            style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+          >
+            <div
+              className="px-4 py-3 text-sm font-medium"
+              style={{ background: "var(--color-bg-surface)" }}
+            >
+              {r.k}
+            </div>
+            <div className="grid grid-cols-2 text-xs" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+              <div
+                className="px-4 py-3 border-r"
+                style={{ borderColor: "rgba(255,255,255,0.08)", color: "var(--color-muted)" }}
+              >
+                <div className="mb-1 opacity-60 text-[10px] uppercase tracking-wide">{th.headers[1]}</div>
+                {r.rag}
+              </div>
+              <div className="px-4 py-3" style={{ color: "var(--color-accent)" }}>
+                <div className="mb-1 opacity-60 text-[10px] uppercase tracking-wide">{th.headers[2]}</div>
+                {r.norag}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: grid table */}
       <div
-        className="mt-16 border rounded-2xl overflow-x-auto"
+        className="hidden md:block mt-16 border rounded-2xl overflow-hidden"
         style={{ borderColor: "rgba(255,255,255,0.1)" }}
       >
-        <div className="grid grid-cols-3 text-sm min-w-[480px]">
+        <div className="grid grid-cols-3 text-sm">
           {th.headers.map((h, i) => (
             <div
               key={h}

@@ -91,7 +91,7 @@ export function L1Demo() {
         initial={{ opacity: 0 }}
         animate={inView ? { opacity: 1 } : { opacity: 0 }}
         transition={{ delay: 1.5, duration: 0.5 }}
-        className="mt-12 p-6 rounded-xl text-sm overflow-auto"
+        className="mt-12 p-6 rounded-xl text-sm overflow-x-auto max-w-full"
         style={{
           background: "var(--color-bg-surface)",
           border: "1px solid rgba(255,255,255,0.1)",
